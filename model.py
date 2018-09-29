@@ -17,7 +17,7 @@ class MemN2N(object):
         self.edim = config.edim
         self.mem_size = config.mem_size
         self.lindim = config.lindim
-        self.max_grad_norm = com.max_grad_norm
+        self.max_grad_norm = config.max_grad_norm
 
         self.show = config.show
         self.is_test = config.is_test
@@ -54,13 +54,13 @@ class MemN2N(object):
         self.C = tf.Variable(tf.random_normal([self.edim, self.edim], stddev=self.init_std))
 
         # Temporal Encoding
-        self.T_A = tf.Variable(tf.random_normal([self.mem_size, self.edim], sttdev=self.init_std))
-        self.T_B = tf.Variable(tf.random_normal([self.mem_size, self.edim], sttdev=self.init_std))
+        self.T_A = tf.Variable(tf.random_normal([self.mem_size, self.edim], stddev=self.init_std))
+        self.T_B = tf.Variable(tf.random_normal([self.mem_size, self.edim], stddev=self.init_std))
 
         # m_i = sum A_ij * x_ij + T_A_i
         Ain_c = tf.nn.embedding_lookup(self.A, self.context)
         Ain_t = tf.nn.embedding_lookup(self.T_A, self.time)
-        A_in = tf.add(Ain_c, Ain_t)
+        Ain = tf.add(Ain_c, Ain_t)
 
         # c_i = sum B_ij * u + T_B_i
         Bin_c = tf.nn.embedding_lookup(self.B, self.context)
@@ -94,7 +94,7 @@ class MemN2N(object):
     def build_model(self):
         self.build_memory()
 
-        self.W = tf.Variable(tf.random_normal([self.edim, self.nwords], stddev=sef.init_std))
+        self.W = tf.Variable(tf.random_normal([self.edim, self.nwords], stddev=self.init_std))
         z = tf.matmul(self.hid[-1], self.W)
 
         self.loss = tf.nn.softmax_cross_entropy_with_logits(logits=z, labels=self.target)
@@ -115,7 +115,7 @@ class MemN2N(object):
         self.saver = tf.train.Saver()
 
     def train(self, data):
-        N = int(match.ceil(len(data)/self.batch_size))
+        N = int(math.ceil(len(data)/self.batch_size))
         cost = 0
 
         x = np.ndarray([self.batch_size, self.edim], dtype = np.float32)
@@ -198,7 +198,7 @@ class MemN2N(object):
                     self.lr.assign(self.current_lr).eval()
                 if self.current_lr < 1e-5: break
 
-                f idx % 10 == 0:
+                if idx % 10 == 0:
                     self.saver.save(self.sess,
                                     os.path.join(self.checkpoint_dir, "MemN2N.model"),
                                     global_step = self.step.astype(int))
